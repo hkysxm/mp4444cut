@@ -1,0 +1,6 @@
+{
+  "name": "qingcut", "version": "1.0.0", "description": "轻剪 · 本地 MP4 无损裁切", "main": "main.js", "author": "QingCut contributors", "license": "GPL-3.0-or-later",
+  "scripts": {"start":"electron .", "test":"node --test test/*.test.js", "build:win":"electron-builder --win zip --x64"},
+  "devDependencies": {"electron":"^40.0.0", "electron-builder":"^26.0.12"},
+  "build": {"appId":"local.qingcut.app", "productName":"QingCut", "directories":{"output":"release"}, "files":["main.js","preload.js","engine.js","ui/**/*","README.md","LICENSE"], "extraResources":[{"from":"vendor","to":"ffmpeg"}], "win":{"target":"zip","signAndEditExecutable":false}, "artifactName":"QingCut-${version}-Windows-x64.zip"}
+}

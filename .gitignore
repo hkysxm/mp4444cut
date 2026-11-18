@@ -1,0 +1,10 @@
+node_modules/
+release/
+vendor/*.exe
+*.mp4
+*.mov
+*.m4v
+*.log
+.env
+.env.*
+.DS_Store
