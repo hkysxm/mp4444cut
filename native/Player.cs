@@ -21,6 +21,8 @@ class Player : Form {
  [DllImport("libmpv-2.dll", CallingConvention=CallingConvention.Cdecl)] static extern IntPtr mpv_get_property_string(IntPtr ctx, byte[] name);
  [DllImport("libmpv-2.dll", CallingConvention=CallingConvention.Cdecl)] static extern void mpv_free(IntPtr value);
  [DllImport("libmpv-2.dll", CallingConvention=CallingConvention.Cdecl)] static extern void mpv_terminate_destroy(IntPtr ctx);
+ [StructLayout(LayoutKind.Sequential)] struct MpvEvent {public int id;public int error;public ulong user;public IntPtr data;}
+ [DllImport("libmpv-2.dll", CallingConvention=CallingConvention.Cdecl)] static extern IntPtr mpv_wait_event(IntPtr ctx,double timeout);
  IntPtr mpv;
  readonly JavaScriptSerializer json=new JavaScriptSerializer();
  readonly ConcurrentQueue<string> queue=new ConcurrentQueue<string>();
@@ -56,6 +58,11 @@ class Player : Form {
    if(op=="seek"){Command("set","pause","yes");Command("seek",Convert.ToDouble(m["time"]).ToString(CultureInfo.InvariantCulture),"absolute+exact");}
    Send(new {type="ack",id=m.ContainsKey("id")?m["id"]:null});
   }catch(Exception ex){Send(new {type="error",message=ex.Message});}
+  for(int i=0;i<100;i++){
+   var evt=(MpvEvent)Marshal.PtrToStructure(mpv_wait_event(mpv,0),typeof(MpvEvent));
+   if(evt.id==0)break;
+   if(evt.id==7&&evt.data!=IntPtr.Zero&&Marshal.ReadInt32(evt.data)==4)Send(new {type="error",message="原片解码失败，可使用兼容预览"});
+  }
   double t; if(double.TryParse(Property("time-pos"),NumberStyles.Float,CultureInfo.InvariantCulture,out t))Send(new {type="state",time=t,paused=Property("pause")=="yes"});
  }
  protected override void OnFormClosed(FormClosedEventArgs e){timer.Stop();if(mpv!=IntPtr.Zero){mpv_terminate_destroy(mpv);mpv=IntPtr.Zero;}base.OnFormClosed(e);}
