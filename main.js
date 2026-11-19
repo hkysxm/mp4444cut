@@ -23,6 +23,15 @@ app.whenReady().then(async()=>{
   current={file,meta};plan=null;output=null;
   return {...meta,name:path.basename(file),url:pathToFileURL(file).href};
  }));
+ register('external',async()=>{
+  if(!current)throw new Error('请先打开视频');
+  const error=await shell.openPath(current.file);
+  if(error)throw new Error('无法打开默认播放器：'+error);
+ });
+ register('keyframe',(position,direction)=>withJob(async signal=>{
+  if(!current)throw new Error('请先打开视频');
+  return engine.adjacentKey(current.file,position,direction,current.meta,signal);
+ }));
  register('plan',(start,end)=>withJob(async signal=>{if(!current)throw new Error('请先打开视频');plan=await engine.plan(current.file,start,end,current.meta,signal);return plan;}));
  register('proxy',()=>withJob(async signal=>{
   if(!current)throw new Error('请先打开视频'); const dest=path.join(tempDir,require('node:crypto').randomUUID()+'.mp4');

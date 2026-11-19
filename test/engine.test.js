@@ -10,6 +10,12 @@ async function sample(name,codec,pix,tag){await setup();const file=path.join(dir
 async function hashes(file){return JSON.parse(await engine.run('ffprobe',['-v','error','-show_packets','-show_data_hash','sha256','-show_entries','packet=stream_index,data_hash','-of','json',file])).packets;}
 for(const [name,codec,pix,tag] of [['h264','libx264','yuv420p'],['hevc8-hev1','libx265','yuv420p','hev1'],['hevc10-hvc1','libx265','yuv420p10le','hvc1'],['hevc422-10','libx265','yuv422p10le','hvc1']])test(`${name}: keyframe cut preserves every compressed packet and all audio tracks`,async()=>{
  const file=await sample(name,codec,pix,tag),meta=await engine.probe(file);const plan=await engine.plan(file,2.7,5.1,meta);assert.ok(Math.abs(plan.start-2)<0.01);assert.ok(Math.abs(plan.end-6)<0.01);
+ assert.equal(await engine.adjacentKey(file,2,1,meta),4);
+ assert.equal(await engine.adjacentKey(file,2,-1,meta),0);
+ assert.equal(await engine.adjacentKey(file,2.7,-1,meta),2);
+ assert.equal(await engine.adjacentKey(file,0,-1,meta),null);
+ assert.equal(await engine.adjacentKey(file,6,1,meta),null);
+ await assert.rejects(engine.adjacentKey(file,NaN,1,meta),/无效/);
  const output=path.join(dir,name+'-cut.mp4');await engine.cut(file,output,plan);const cut=await engine.probe(output);assert.equal(cut.codec,meta.codec);assert.equal(cut.pixelFormat,meta.pixelFormat);assert.equal(cut.streams.filter(s=>s.codec_type==='audio').length,2);
  const originals=new Set((await hashes(file)).map(p=>p.stream_index+':'+p.data_hash)),packets=await hashes(output);assert.ok(packets.length>100);for(const p of packets)assert.ok(originals.has(p.stream_index+':'+p.data_hash),'compressed packet changed');
  await engine.run('ffmpeg',['-v','error','-xerror','-i',output,'-f','null','-']);

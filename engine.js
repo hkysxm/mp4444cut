@@ -30,6 +30,15 @@ class Engine {
     }
     throw new Error('无法找到裁切边界的关键帧。');
   }
+  async adjacentKey(file,position,direction,meta,signal) {
+    if(!Number.isFinite(position)||position<0||position>meta.duration||![1,-1].includes(direction))throw new Error('无效的关键帧位置');
+    const target=position+direction*0.001;
+    if(target<0||target>meta.duration)return null;
+    const keys=await this.keys(file,target,meta,signal);
+    const next=direction<0?keys.before:keys.after;
+    // The duration fallback is an end boundary, not a video frame.
+    return next>=meta.duration||Math.abs(next-position)<0.0001?null:next;
+  }
   async plan(file,start,end,meta,signal) {
     if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end>meta.duration+0.001||end<=start)throw new Error('请设置有效的起点和终点。');
     const a=start===0?{before:0}:await this.keys(file,start,meta,signal);
