@@ -3,7 +3,8 @@ const path=require('node:path');
 const fs=require('node:fs/promises');
 const {pathToFileURL}=require('node:url');
 const {Engine}=require('./engine');
-let window,engine,current,plan,job,tempDir,output;
+let window,engine,current,plan,job,tempDir,output,player;
+const {NativePlayer}=require('./native-player');
 const resource=app.isPackaged?path.join(process.resourcesPath,'ffmpeg'):path.join(__dirname,'vendor');
 function progress(stage,duration){return seconds=>window?.webContents.send('progress',{stage,percent:Math.max(0,Math.min(99,seconds/duration*100))});}
 function register(name,fn){ipcMain.handle(name,async(event,...args)=>{
@@ -16,6 +17,25 @@ app.whenReady().then(async()=>{
  tempDir=await fs.mkdtemp(path.join(app.getPath('temp'),'qingcut-'));
  window=new BrowserWindow({width:1160,height:840,minWidth:760,minHeight:680,backgroundColor:'#101416',title:'轻剪 · 无损视频裁切',webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
  window.removeMenu();window.webContents.setWindowOpenHandler(()=>({action:'deny'}));window.webContents.on('will-navigate',e=>e.preventDefault());
+ register('player-start',async()=>{
+  if(process.platform!=='win32')return false;
+  if(!current)throw new Error('请先打开视频');
+  if(!player){
+   const instance=new NativePlayer(path.join(resource,'mpv','QingCut.Player.exe'),window.getNativeWindowHandle(),event=>{
+    if(!window.isDestroyed())window.webContents.send('player-event',event);
+   });player=instance;
+   try{await instance.ready;}catch(e){instance.stop();player=null;throw e;}
+  }
+  player.send({op:'load',file:current.file});return true;
+ });
+ register('player-command',message=>{
+  if(!player)return;
+  if(message.op==='pause'&&typeof message.value==='boolean')player.send(message);
+  else if(message.op==='seek'&&current&&Number.isFinite(message.time)&&message.time>=0&&message.time<=current.meta.duration)player.send(message);
+  else if(message.op==='bounds'&&['x','y','width','height'].every(k=>Number.isFinite(message[k])&&Math.abs(message[k])<50000))player.send({...message,visible:!!message.visible});
+  else if(message.op==='stop'){player.stop();player=null;}
+  else throw new Error('无效的播放器指令');
+ });
  register('open',()=>withJob(async()=>{
   const result=await dialog.showOpenDialog(window,{title:'打开 MP4 视频',properties:['openFile'],filters:[{name:'MP4 视频',extensions:['mp4','m4v','mov']}]});
   if(result.canceled)return null;
@@ -48,4 +68,4 @@ app.whenReady().then(async()=>{
  await window.loadFile('ui/index.html');
 });
 app.on('window-all-closed',()=>app.quit());
-app.on('will-quit',()=>{engine?.stop();if(tempDir)require('node:fs').rmSync(tempDir,{recursive:true,force:true,maxRetries:3});});
+app.on('will-quit',()=>{player?.stop();engine?.stop();if(tempDir)require('node:fs').rmSync(tempDir,{recursive:true,force:true,maxRetries:3});});

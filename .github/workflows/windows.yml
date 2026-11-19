@@ -23,6 +23,8 @@ jobs:
         run: |
           ./scripts/setup-ffmpeg.ps1
           "$env:GITHUB_WORKSPACE\vendor" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Install and build embedded mpv player
+        run: ./scripts/setup-mpv.ps1
       - name: Build Windows portable ZIP
         run: npm run build:win -- --publish never
       - name: Test with bundled decoder
@@ -43,7 +45,7 @@ jobs:
           $zip = $zips[0]
           $dest = Join-Path $env:RUNNER_TEMP 'qingcut-package-check'
           Expand-Archive -LiteralPath $zip.FullName -DestinationPath $dest
-          foreach ($file in @('QingCut.exe', 'resources/ffmpeg/ffmpeg.exe', 'resources/ffmpeg/ffprobe.exe', 'resources/app.asar')) {
+          foreach ($file in @('QingCut.exe', 'resources/ffmpeg/ffmpeg.exe', 'resources/ffmpeg/ffprobe.exe', 'resources/app.asar', 'resources/ffmpeg/mpv/libmpv-2.dll', 'resources/ffmpeg/mpv/QingCut.Player.exe')) {
             if (!(Test-Path (Join-Path $dest $file))) { throw "Missing $file" }
           }
           foreach ($name in @('ffmpeg.exe', 'ffprobe.exe')) {

@@ -8,3 +8,5 @@ vendor/*.exe
 .env
 .env.*
 .DS_Store
+
+/vendor/mpv/
