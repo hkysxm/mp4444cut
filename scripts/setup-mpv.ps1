@@ -11,7 +11,9 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'mpv extraction failed' }
     if (!(Test-Path "$dest/libmpv-2.dll")) { throw 'libmpv-2.dll missing' }
     $csc = "$env:WINDIR/Microsoft.NET/Framework64/v4.0.30319/csc.exe"
-    & $csc /nologo /target:exe /platform:x64 /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Web.Extensions.dll "/out:$dest/QingCut.Player.exe" "$PSScriptRoot/../native/Player.cs"
+    $source = (Resolve-Path (Join-Path $PSScriptRoot "../native/Player.cs")).Path
+    $output = Join-Path (Resolve-Path $dest).Path "QingCut.Player.exe"
+    & $csc /nologo /target:exe /platform:x64 /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Web.Extensions.dll "/out:$output" $source
     if ($LASTEXITCODE -ne 0) { throw 'Native player compilation failed' }
     Copy-Item "$PSScriptRoot/../LICENSE" "$dest/QingCut-LICENSE.txt"
     @'
