@@ -22,7 +22,8 @@ app.whenReady().then(async()=>{
   if(!current)throw new Error('请先打开视频');
   if(!player){
    const instance=new NativePlayer(path.join(resource,'mpv','QingCut.Player.exe'),window.getNativeWindowHandle(),event=>{
-    if(!window.isDestroyed())window.webContents.send('player-event',event);
+    if(player===instance&&!window.isDestroyed())window.webContents.send('player-event',event);
+    if(player===instance&&event.type==='exit')player=null;
    });player=instance;
    try{await instance.ready;}catch(e){instance.stop();player=null;throw e;}
   }

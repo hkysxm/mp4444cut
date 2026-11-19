@@ -10,7 +10,7 @@ test('Windows embedded libmpv decodes HEVC and synchronizes exact seek and pause
  let player;const events=[];
  const wait=async predicate=>{const deadline=Date.now()+15000;while(Date.now()<deadline){const error=events.find(e=>e.type==='error');if(error)throw new Error(error.message);const found=events.find(predicate);if(found)return found;await new Promise(r=>setTimeout(r,50));}throw new Error('Timed out waiting for native playback state');};
  try{
-  const file=path.join(dir,'hevc.mp4');
+  const file=path.join(dir,'中文 HEVC 样片.mp4');
   await new Engine().run('ffmpeg',['-v','error','-f','lavfi','-i','testsrc2=size=320x180:rate=30','-t','6','-c:v','libx265','-x265-params','pools=2:log-level=error','-g','60',file]);
   player=new NativePlayer(path.join(__dirname,'../vendor/mpv/QingCut.Player.exe'),Buffer.alloc(8),e=>events.push(e));
   await player.ready;

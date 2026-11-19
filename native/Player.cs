@@ -59,5 +59,5 @@ class Player : Form {
   double t; if(double.TryParse(Property("time-pos"),NumberStyles.Float,CultureInfo.InvariantCulture,out t))Send(new {type="state",time=t,paused=Property("pause")=="yes"});
  }
  protected override void OnFormClosed(FormClosedEventArgs e){timer.Stop();if(mpv!=IntPtr.Zero){mpv_terminate_destroy(mpv);mpv=IntPtr.Zero;}base.OnFormClosed(e);}
- [STAThread] static void Main(string[] args){try{SetProcessDPIAware();Application.Run(new Player(long.Parse(args[0])));}catch(Exception e){Console.WriteLine(new JavaScriptSerializer().Serialize(new {type="error",message=e.Message}));Environment.ExitCode=1;}}
+ [STAThread] static void Main(string[] args){try{Console.InputEncoding=Encoding.UTF8;Console.OutputEncoding=new UTF8Encoding(false);SetProcessDPIAware();Application.Run(new Player(long.Parse(args[0])));}catch(Exception e){Console.WriteLine(new JavaScriptSerializer().Serialize(new {type="error",message=e.Message}));Environment.ExitCode=1;}}
 }
