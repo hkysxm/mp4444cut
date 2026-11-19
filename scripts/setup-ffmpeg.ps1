@@ -5,7 +5,7 @@ $tempPath = Join-Path ([IO.Path]::GetTempPath()) ('qingcut-' + [guid]::NewGuid()
 New-Item -ItemType Directory -Force -Path $vendorPath, $tempPath | Out-Null
 try {
     $archivePath = Join-Path $tempPath 'ffmpeg.zip'
-    Invoke-WebRequest -Uri 'https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-9.0.2-essentials_build.zip' -OutFile $archivePath
+    Invoke-WebRequest -Uri 'https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-essentials_build.zip' -OutFile $archivePath
     Expand-Archive -LiteralPath $archivePath -DestinationPath $tempPath
     $expected = @{
         'ffmpeg.exe' = '3256173f3f8bffd7df12227c68adf68025edb1832273a9530688a7bb1ed8edec'
