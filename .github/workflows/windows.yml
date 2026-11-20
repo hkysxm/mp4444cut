@@ -45,7 +45,7 @@ jobs:
           $zip = $zips[0]
           $dest = Join-Path $env:RUNNER_TEMP 'qingcut-package-check'
           Expand-Archive -LiteralPath $zip.FullName -DestinationPath $dest
-          foreach ($file in @('QingCut.exe', 'resources/ffmpeg/ffmpeg.exe', 'resources/ffmpeg/ffprobe.exe', 'resources/app.asar', 'resources/ffmpeg/mpv/libmpv-2.dll', 'resources/ffmpeg/mpv/QingCut.Player.exe')) {
+          foreach ($file in @('QingCut.exe', 'resources/ffmpeg/ffmpeg.exe', 'resources/ffmpeg/ffprobe.exe', 'resources/app.asar', 'resources/ffmpeg/mpv/libmpv-2.dll', 'resources/ffmpeg/mpv/vulkan-1.dll', 'resources/ffmpeg/mpv/QingCut.Player.exe')) {
             if (!(Test-Path (Join-Path $dest $file))) { throw "Missing $file" }
           }
           foreach ($name in @('ffmpeg.exe', 'ffprobe.exe')) {
